@@ -11,6 +11,7 @@ from telegram.ext import ContextTypes
 from agent_loop.config import Config
 from agent_loop.core.claude import MODELS
 from agent_loop.core.controller import AgentController
+from agent_loop.skills import SkillLoader
 
 log = logging.getLogger(__name__)
 
@@ -91,11 +92,58 @@ def register_commands(config: Config, controller: AgentController):
         """Bot status check."""
         current_model = controller.model or config.agent.model
         sessions = controller.sessions.active_count
+        store_stats = controller.store.stats()
         await update.message.reply_text(
             f"**{config.agent.name}** is running\n"
             f"Model: {current_model}\n"
-            f"Active sessions: {sessions}"
+            f"Active sessions: {sessions}\n"
+            f"History: {store_stats['messages']} msgs in {store_stats['sessions']} sessions"
         )
+
+    async def cmd_recall(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Search past conversations with FTS5."""
+        args = context.args
+        if not args:
+            await update.message.reply_text(
+                "Usage: /recall <query>\nSearches past sessions for relevant messages."
+            )
+            return
+
+        query = " ".join(args)
+        hits = controller.store.search(query, limit=10)
+        if not hits:
+            await update.message.reply_text(f"No matches for: {query}")
+            return
+
+        lines = [f"**Recall results for:** {query}\n"]
+        for hit in hits:
+            ts = hit["timestamp"][:10]
+            role = hit["role"]
+            content = hit["content"].replace("\n", " ")[:200]
+            lines.append(f"`{ts}` [{role}] {content}")
+
+        output = "\n".join(lines)
+        if len(output) > 4000:
+            output = output[:4000] + "\n\n... (truncated)"
+        await update.message.reply_text(output)
+
+    async def cmd_skills(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """List available skills."""
+        from agent_loop.skills import SkillLoader
+
+        primary = config.project_root / "data" / "skills"
+        external = [Path.home() / ".claude" / "skills"]
+        loader = SkillLoader(primary, external)
+
+        if not loader.skills:
+            await update.message.reply_text(
+                "No skills installed.\n\n"
+                f"Create one at: {primary}/<name>/SKILL.md"
+            )
+            return
+
+        text = "**Available skills:**\n" + loader.describe_all()
+        await update.message.reply_text(text)
 
     return {
         "start": cmd_start,
@@ -105,4 +153,6 @@ def register_commands(config: Config, controller: AgentController):
         "memory": cmd_memory,
         "todo": cmd_todo,
         "ping": cmd_ping,
+        "recall": cmd_recall,
+        "skills": cmd_skills,
     }

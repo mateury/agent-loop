@@ -145,6 +145,8 @@ loops:
 | `/new` | Reset session (start fresh) |
 | `/model` | Show/change model (opus, sonnet, haiku) |
 | `/memory` | Show memory index |
+| `/recall` | Search past conversations (FTS5) |
+| `/skills` | List installed skills |
 | `/todo` | Show task list |
 | `/ping` | Bot status |
 
@@ -170,6 +172,48 @@ Tiers:
 - **core** — never deleted (critical knowledge)
 - **standard** — archived after 30 days inactive
 - **ephemeral** — auto-archived after 14 days (journals, temp notes)
+
+## Cross-session recall
+
+Every conversation is indexed in SQLite with FTS5 full-text search. When you ask the agent something, it automatically surfaces relevant past exchanges from the database and injects them into the prompt — wrapped in `<memory-context>` tags with a "treat as informational background" disclaimer.
+
+Use `/recall <query>` to search manually.
+
+Data lives at `data/sessions.db` (inspectable with `sqlite3`).
+
+## Skills (agentskills.io compatible)
+
+Skills are markdown directories with a required `SKILL.md`:
+
+```
+data/skills/
+├── daily-review/
+│   └── SKILL.md         # YAML frontmatter + body
+└── my-deployment/
+    ├── SKILL.md
+    ├── references/       # optional extra files
+    └── scripts/
+```
+
+Frontmatter example:
+
+```yaml
+---
+name: daily-review
+description: Review today's work
+version: 1.0.0
+platforms: [linux, macos]
+tags: [productivity]
+---
+```
+
+List with `/skills`. Example in `examples/skills/daily-review/`.
+
+Compatible with Claude Code's `~/.claude/skills/` directory — skills you write work in both.
+
+## Memory nudges
+
+Every 10 turns, the agent gets a reminder to consolidate learnings into memory. Every 15 tool iterations, a skill-creation nudge fires. Cheap way to make the agent proactive about long-term state without constant prompting.
 
 ## Autonomous Loops
 

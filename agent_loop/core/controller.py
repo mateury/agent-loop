@@ -19,7 +19,14 @@ from agent_loop.core.claude import (
     ResultEvent,
     run_claude_stream,
 )
+from agent_loop.core.nudges import NudgeCounters
 from agent_loop.core.session import SessionManager
+from agent_loop.memory.fencing import (
+    inject_into_prompt,
+    sanitize_user_input,
+    wrap_memory_context,
+)
+from agent_loop.search import SessionStore
 from agent_loop.util.logging import log_usage, log_conversation
 
 log = logging.getLogger(__name__)
@@ -51,6 +58,13 @@ class AgentController:
         self._last_usage: dict | None = None
         self._last_rate_limit: dict | None = None
 
+        # FTS5 session store for cross-session recall
+        db_path = config.project_root / "data" / "sessions.db"
+        self.store = SessionStore(db_path)
+
+        # Nudge counters (per chat — each chat has its own cadence)
+        self._nudges: dict[str, NudgeCounters] = {}
+
     async def handle_message(
         self,
         chat_id: str,
@@ -71,19 +85,23 @@ class AgentController:
         Returns:
             Response with Claude's output.
         """
-        # Log the user message
+        # Sanitize and log the raw user message
+        text = sanitize_user_input(text)
         self._log_conversation(text, "user")
+
+        # Enrich prompt with memory context + cross-session recall + nudge
+        enriched = self._enrich_prompt(chat_id, text)
 
         # Try main session (non-blocking)
         try:
             await asyncio.wait_for(self._lock.acquire(), timeout=0.1)
         except asyncio.TimeoutError:
             log.info("Main session busy — spawning side session")
-            return await self._run_side_session(chat_id, text, on_progress, on_typing)
+            return await self._run_side_session(chat_id, enriched, on_progress, on_typing)
 
         try:
             return await self._run_main_session(
-                chat_id, text, on_progress, on_typing
+                chat_id, enriched, on_progress, on_typing, original_text=text
             )
         finally:
             self._lock.release()
@@ -94,9 +112,16 @@ class AgentController:
         text: str,
         on_progress: Callable[[str], Awaitable[None]] | None,
         on_typing: Callable[[], Awaitable[None]] | None,
+        original_text: str | None = None,
     ) -> Response:
-        """Run in main session with --resume for continuity."""
+        """Run in main session with --resume for continuity.
+
+        Args:
+            text: Enriched prompt (with memory fencing + recall + nudge).
+            original_text: Raw user input — what we persist to search/history.
+        """
         session_id = self.sessions.get(chat_id)
+        persist_text = original_text if original_text is not None else text
 
         result = await self._execute_claude(
             text,
@@ -107,6 +132,10 @@ class AgentController:
 
         if result.session_id:
             self.sessions.set(chat_id, result.session_id)
+            # Persist RAW user input (not enriched) so search indexes actual user turns
+            self.store.start_session(result.session_id, chat_id, self.model)
+            self.store.add_message(result.session_id, "user", persist_text)
+            self.store.add_message(result.session_id, "assistant", result.text)
 
         self._log_conversation(result.text, "assistant")
         return result
@@ -213,7 +242,59 @@ class AgentController:
 
     def reset_session(self, chat_id: str) -> str | None:
         """Reset a chat's session."""
+        self._nudges.pop(chat_id, None)
         return self.sessions.reset(chat_id)
+
+    def _get_nudges(self, chat_id: str) -> NudgeCounters:
+        """Get (or create) nudge counters for a chat."""
+        if chat_id not in self._nudges:
+            self._nudges[chat_id] = NudgeCounters()
+        return self._nudges[chat_id]
+
+    def _enrich_prompt(self, chat_id: str, user_text: str) -> str:
+        """Enrich a user prompt with memory context, cross-session recall, and nudges.
+
+        - Looks up recent memory index
+        - Searches past sessions for relevant hits (bypasses if memory disabled)
+        - Optionally appends a nudge reminder every N turns
+        """
+        if not self.config.memory.enabled:
+            return user_text
+
+        # Load memory index (if present)
+        memory_index_path = (
+            self.config.project_root / self.config.memory.path / "MEMORY.md"
+        )
+        memory_text = ""
+        if memory_index_path.exists():
+            try:
+                memory_text = memory_index_path.read_text()
+            except OSError:
+                pass
+
+        # Search past sessions (exclude current one to avoid redundancy)
+        current_sid = self.sessions.get(chat_id)
+        hits: list[dict] = []
+        try:
+            hits = self.store.search(
+                user_text, limit=5, exclude_session=current_sid
+            )
+        except Exception as e:
+            log.warning("Session search failed: %s", e)
+
+        # Build fenced memory block
+        memory_block = wrap_memory_context(memory_text, hits)
+
+        # Tick nudge counter, append reminder if due
+        nudges = self._get_nudges(chat_id)
+        nudge_text = nudges.tick_turn()
+
+        # Assemble final prompt
+        enriched = inject_into_prompt(user_text, memory_block)
+        if nudge_text:
+            enriched = f"{enriched}\n\n{nudge_text}"
+
+        return enriched
 
     @property
     def last_usage(self) -> dict | None:
