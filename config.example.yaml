@@ -1,0 +1,68 @@
+# agent-loop configuration
+# Copy to config.yaml and customize
+
+agent:
+  # Agent persona name (used in prompts and greetings)
+  name: "Atlas"
+  # Response language (ISO 639-1 code)
+  language: "en"
+  # Default Claude model: opus, sonnet, haiku
+  model: "sonnet"
+  # Max seconds per Claude CLI invocation
+  timeout: 600
+
+bridge:
+  # Messenger type: telegram (more coming soon)
+  type: "telegram"
+  # Seconds between typing indicators
+  typing_interval: 4.0
+  # Min seconds between progress messages
+  progress_interval: 3.0
+  # Max concurrent side sessions
+  max_side_sessions: 3
+
+memory:
+  enabled: true
+  # Relative to project root
+  path: "data/memory"
+  tiers:
+    # Core memories never expire
+    core_ttl_days: null
+    # Standard memories archive after 30 days inactive
+    standard_ttl_days: 30
+    # Ephemeral memories archive after 14 days
+    ephemeral_ttl_days: 14
+
+loops:
+  heartbeat:
+    enabled: true
+    # Interval between heartbeats
+    interval_minutes: 30
+    # Only run during these hours (24h format)
+    active_hours_start: 8
+    active_hours_end: 22
+    # Model for heartbeat (sonnet recommended)
+    model: "sonnet"
+    # Max seconds per heartbeat action
+    timeout: 900
+  digest:
+    enabled: true
+    # Time to run daily digest (24h format)
+    hour: 23
+    minute: 0
+    model: "haiku"
+  maintain:
+    enabled: true
+    # Run every N hours
+    interval_hours: 6
+    model: "sonnet"
+
+logging:
+  # Log all user/assistant messages
+  conversation_log: true
+  # Track token usage to CSV
+  usage_csv: true
+  # Log directory (relative to project root)
+  log_dir: "data/logs"
+  # Log level: DEBUG, INFO, WARNING, ERROR
+  level: "INFO"

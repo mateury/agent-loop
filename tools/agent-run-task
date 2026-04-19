@@ -1,0 +1,4 @@
+#!/bin/bash
+# Spawn background Claude subagent
+# Usage: agent-run-task "task name" ["prompt"] [model]
+exec python3 -m agent_loop.tools.run_task "$@"

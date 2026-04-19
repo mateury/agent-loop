@@ -1,0 +1,4 @@
+#!/bin/bash
+# Send notification via agent-loop bridge
+# Usage: agent-notify "message" or echo "message" | agent-notify
+exec python3 -m agent_loop.tools.notify "$@"

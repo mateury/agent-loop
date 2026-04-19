@@ -1,0 +1,4 @@
+#!/bin/bash
+# Send file via agent-loop bridge
+# Usage: agent-send-file /path/to/file ["caption"]
+exec python3 -m agent_loop.tools.send_file "$@"
