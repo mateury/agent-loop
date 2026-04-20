@@ -6,7 +6,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), versioning: [S
 
 ---
 
-## [Unreleased]
+## [0.2.1] — 2026-04-20
 
 ### Added
 - 44 unit tests covering `memory.fencing`, `search.query`, and `core.nudges` modules
