@@ -27,7 +27,7 @@ Built on Claude Code CLI, which means your agent has full capabilities: file sys
 ### Install
 
 ```bash
-git clone https://github.com/mateuszrybak/agent-loop.git
+git clone https://github.com/mateury/agent-loop.git
 cd agent-loop
 python3 -m venv .venv
 source .venv/bin/activate

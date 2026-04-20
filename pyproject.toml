@@ -38,10 +38,10 @@ dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.4"]
 agent-loop = "agent_loop.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/mateuszrybak/agent-loop"
-Documentation = "https://github.com/mateuszrybak/agent-loop/docs"
-Repository = "https://github.com/mateuszrybak/agent-loop"
-Issues = "https://github.com/mateuszrybak/agent-loop/issues"
+Homepage = "https://github.com/mateury/agent-loop"
+Documentation = "https://github.com/mateury/agent-loop/docs"
+Repository = "https://github.com/mateury/agent-loop"
+Issues = "https://github.com/mateury/agent-loop/issues"
 
 [tool.setuptools.packages.find]
 include = ["agent_loop*"]
