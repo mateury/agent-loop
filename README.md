@@ -1,5 +1,7 @@
 # agent-loop
 
+[![Tests](https://github.com/mateury/agent-loop/actions/workflows/tests.yml/badge.svg)](https://github.com/mateury/agent-loop/actions/workflows/tests.yml)
+
 Open-source framework for building autonomous AI agents powered by [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code). Connect your agent to Telegram (more messengers coming soon) and let it work for you 24/7.
 
 ## What is this?
@@ -318,6 +320,21 @@ agent-loop start --no-loops
 0 23 * * *      cd /path/to/agent-loop && .venv/bin/agent-loop digest
 0 */6 * * *     cd /path/to/agent-loop && .venv/bin/agent-loop maintain
 ```
+
+## Development
+
+```bash
+# Install with dev dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest tests/ -v
+
+# Lint
+ruff check agent_loop/
+```
+
+Tests cover the core pure-logic modules: memory fencing, FTS5 query sanitization, and nudge counters. CI runs automatically on push via GitHub Actions.
 
 ## License
 
