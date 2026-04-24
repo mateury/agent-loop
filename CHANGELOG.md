@@ -11,6 +11,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), versioning: [S
 ### Added
 - Example skill: `dependency-audit` — scan npm and pip projects for known security vulnerabilities
 - README: skills table listing all four bundled examples (`daily-review`, `repo-sync`, `system-health`, `dependency-audit`)
+- 6 structural tests for example skills (`test_skill_examples.py`) — validates frontmatter, required fields, name/dirname consistency, non-empty body; CI now enforces skill format on every PR
 
 ---
 
