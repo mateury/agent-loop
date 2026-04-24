@@ -209,7 +209,14 @@ tags: [productivity]
 ---
 ```
 
-List with `/skills`. Example in `examples/skills/daily-review/`.
+List with `/skills`. Ready-made examples in `examples/skills/`:
+
+| Skill | Description |
+|---|---|
+| `daily-review` | Summarise commits, tasks, and decisions from today |
+| `repo-sync` | Pull latest changes across multiple git repos |
+| `system-health` | Check disk, RAM, and services — good for scheduled heartbeats |
+| `dependency-audit` | Scan npm and pip projects for known security vulnerabilities |
 
 Compatible with Claude Code's `~/.claude/skills/` directory — skills you write work in both.
 
