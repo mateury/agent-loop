@@ -8,6 +8,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), versioning: [S
 
 ## [Unreleased]
 
+---
+
+## [0.2.2] — 2026-04-29
+
 ### Added
 - Example skill: `dependency-audit` — scan npm and pip projects for known security vulnerabilities
 - README: skills table listing all four bundled examples (`daily-review`, `repo-sync`, `system-health`, `dependency-audit`)
