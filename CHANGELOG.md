@@ -8,6 +8,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), versioning: [S
 
 ## [Unreleased]
 
+### Added
+- Example skill: `ssl-check` — verify SSL certificate expiry for production domains; alerts at < 30 days (warning) and < 14 days (critical); supports Linux and macOS `openssl` date parsing
+
 ---
 
 ## [0.2.2] — 2026-04-29

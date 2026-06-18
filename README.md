@@ -217,6 +217,7 @@ List with `/skills`. Ready-made examples in `examples/skills/`:
 | `repo-sync` | Pull latest changes across multiple git repos |
 | `system-health` | Check disk, RAM, and services — good for scheduled heartbeats |
 | `dependency-audit` | Scan npm and pip projects for known security vulnerabilities |
+| `ssl-check` | Verify SSL certificate expiry for production domains — alerts at 30 and 14 days |
 
 Compatible with Claude Code's `~/.claude/skills/` directory — skills you write work in both.
 
