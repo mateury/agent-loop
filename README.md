@@ -218,6 +218,7 @@ List with `/skills`. Ready-made examples in `examples/skills/`:
 | `system-health` | Check disk, RAM, and services — good for scheduled heartbeats |
 | `dependency-audit` | Scan npm and pip projects for known security vulnerabilities |
 | `ssl-check` | Verify SSL certificate expiry for production domains — alerts at 30 and 14 days |
+| `http-health-check` | Verify HTTP endpoints return expected status, latency, and content — pairs with `ssl-check` |
 
 Compatible with Claude Code's `~/.claude/skills/` directory — skills you write work in both.
 
