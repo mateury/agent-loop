@@ -8,6 +8,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), versioning: [S
 
 ## [Unreleased]
 
+---
+
+## [0.2.3] — 2026-06-21
+
 ### Added
 - Example skill: `ssl-check` — verify SSL certificate expiry for production domains; alerts at < 30 days (warning) and < 14 days (critical); supports Linux and macOS `openssl` date parsing
 - Example skill: `http-health-check` — verify HTTP endpoints return expected status codes, respond within latency thresholds, and contain required content keywords; natural companion to `ssl-check`
